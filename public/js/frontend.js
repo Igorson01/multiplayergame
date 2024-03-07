@@ -43,72 +43,40 @@
     }
   })
 
-  socket.on('updatePlayers', (backEndPlayers)=> {
+  socket.on('updatePlayers', (backEndPlayers) => {
     for (const id in backEndPlayers) {
-      const backEndPlayer = backEndPlayers[id] 
-      if(!frontEndPlayers[id]) {
-        frontEndPlayers[id] = new Player({  
-          x:backEndPlayer.x,
-          y:backEndPlayer.y,  
-          radius:10,
-          color: backEndPlayer.color,
-          username: backEndPlayer.username
-      })
-      document.querySelector('#playerLabels').innerHTML += `<div data-id="${id}" data-score="${backEndPlayer.score}">${backEndPlayer.username}:${backEndPlayer.score}</div>`
-    } else {
+        const backEndPlayer = backEndPlayers[id];
+        if (!frontEndPlayers[id]) {
+            frontEndPlayers[id] = new Player({
+                x: backEndPlayer.x,
+                y: backEndPlayer.y,
+                radius: 10,
+                color: backEndPlayer.color,
+                username: backEndPlayer.username
+            });
+            document.querySelector('#playerLabels').innerHTML += `<div data-id="${id}" data-score="${backEndPlayer.score}">${backEndPlayer.username}:${backEndPlayer.score}</div>`;
+        } else {
+            document.querySelector(`div[data-id="${id}"]`).innerHTML = `${backEndPlayer.username}:${backEndPlayer.score}`;
+            document.querySelector(`div[data-id="${id}"]`).setAttribute('data-score', backEndPlayer.score);
 
-      document.querySelector(`div[data-id="${id}"]`).innerHTML = `${backEndPlayer.username}:${backEndPlayer.score}`
-      document.querySelector(`div[data-id="${id}"]`).setAttribute('data-score', backEndPlayer.score)
-
-      //sorts the players divs
-      const parentDiv =  document.querySelector('#playerLabels')
-      const childDivs = Array.from(parentDiv.querySelectorAll('div'))
-
-      childDivs.sort((a,b) =>{
-       const scoreA = Number(a.getAttribute('data-score'))
-       const scoreB = Number(b.getAttribute('data-score'))
-
-        return scoreB - scoreA
-      })
-      //removes old elements
-      childDivs.forEach(div =>{
-        parentDiv.removeChild(div)
-      })
-      //adds sorted elements
-      childDivs.forEach(div =>{
-        parentDiv.appendChild(div)
-      })
-      frontEndPlayers[id].target = {
-        x:backEndPlayer.x,
-        y:backEndPlayer.y
-      }
-
-      if(id=== socket.id) { 
-    const lastBackendInputIndex = playerInputs.findIndex(input =>{
-        return backEndPlayer.sequenceNumber === input.sequenceNumber
-      })
-      if(lastBackendInputIndex> -1)
-      playerInputs.splice(0,lastBackendInputIndex)
-      
-      playerInputs.forEach(input => {
-        frontEndPlayers[id].target.x += input.dx
-        frontEndPlayers[id].target.y += input.dy
-      })
-    } 
-    }
-    }
-    // this is where we delete frontendplayers
-    for (const id in frontEndPlayers) {
-      if (!backEndPlayers[id]) {
-        const divToDelete = document.querySelector(`div[data-id="${id}"]`)
-        divToDelete.parentNode.removeChild(divToDelete)
-        if(id=== socket.id) {
-          document.querySelector('#usernameForm').style.display ='block'
+            frontEndPlayers[id].x = backEndPlayer.x;
+            frontEndPlayers[id].y = backEndPlayer.y;
         }
-        delete frontEndPlayers[id]
-      }
+
+       
     }
-  })
+
+    for (const id in frontEndPlayers) {
+        if (!backEndPlayers[id]) {
+            const divToDelete = document.querySelector(`div[data-id="${id}"]`);
+            divToDelete.parentNode.removeChild(divToDelete);
+            if (id === socket.id) {
+                document.querySelector('#usernameForm').style.display = 'block';
+            }
+            delete frontEndPlayers[id];
+        }
+    }
+});
 
   let animationId
 
